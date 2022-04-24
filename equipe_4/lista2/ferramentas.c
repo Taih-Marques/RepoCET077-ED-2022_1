@@ -1,18 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include<time.h>
 
 #include "ferramentas.h"
 
-
-// Manipulação de listas não ordenadas
+/* Manipulação de listas não ordenadas*/
 int buscaAluno_NOrd(TAluno lista[], int tam, int chave){
     /*
         Utilizar a implementação proposta no Exemplo_06
         para busca em listas não ordenadas. Você pode
         propor modificações no código visando melhorias
-        no desempenho.
-    */
+        no desempenho.*/
+    
    int i = 0;
 	while (i < tam)
 	{
@@ -22,6 +22,7 @@ int buscaAluno_NOrd(TAluno lista[], int tam, int chave){
 	}
 	return tam; //não achou, retorna tamLista
 }
+
 int incAluno_NOrd(TAluno aluno, TAluno lista[], int *tam, int cap){
     /*
         Utilizar a implementação proposta no Exemplo_06
@@ -31,7 +32,7 @@ int incAluno_NOrd(TAluno aluno, TAluno lista[], int *tam, int cap){
     */
    if (*tam == cap)
         return FALSE; //lista cheia
-	if (buscaAluno(lista, *tam, aluno.numMatricula) == *tam){
+	if (buscaAluno_NOrd(lista, *tam, aluno.numMatricula) == *tam){
 		lista[*tam].numMatricula = aluno.numMatricula;
 		strcpy(lista[*tam].nome, aluno.nome);
 		strcpy(lista[*tam].email, aluno.email);
@@ -40,6 +41,7 @@ int incAluno_NOrd(TAluno aluno, TAluno lista[], int *tam, int cap){
 	}else
         return FALSE;
 }
+
 int remAluno_NOrd(int chave, TAluno lista[], int *tam){
     /*
         Utilizar a implementação proposta no Exemplo_06
@@ -49,7 +51,7 @@ int remAluno_NOrd(int chave, TAluno lista[], int *tam){
     */
     if(*tam == 0)
         return FALSE; //lista vazia
-    int pos = buscaAluno(lista, *tam, chave);
+    int pos = buscaAluno_NOrd(lista, *tam, chave);
     if (pos < *tam){
         *tam -= 1;
         lista[pos].numMatricula = lista[*tam].numMatricula;
@@ -69,19 +71,21 @@ int buscaAluno_Ord(TAluno lista[], int tam, int chave){
         propor modificações no código visando melhorias
         no desempenho.
     */
-    int min = 0, max = tam, i;
+    int min = 0, max = tam, i = 0;
     while (min != max)      {
         i = (max + min) / 2;
         if (lista[i].numMatricula < chave)
-            min = ++i;
-        else
+            min = i + 1;
+        else {
             if (lista[i].numMatricula > chave)
                 max = i;
             else
                 return i;
+        }
     }
     return i;
 }
+
 int incAluno_Ord(TAluno aluno, TAluno lista[], int *tam, int cap){
     /*
         Utilizar a implementação proposta no Exemplo_10
@@ -93,21 +97,20 @@ int incAluno_Ord(TAluno aluno, TAluno lista[], int *tam, int cap){
         elementos no array da direita para esquerda. Esta
         modificação precisa ser implementada.
     */
-   if (*tam == cap)
+    if (*tam == cap)
         return FALSE; //lista cheia
     int pos = buscaAluno_Ord(lista, *tam, aluno.numMatricula);
 	if ( pos == *tam){
-        // nao existe na lista
         lista[*tam].numMatricula = aluno.numMatricula; 
 		strcpy(lista[*tam].nome, aluno.nome);
 		strcpy(lista[*tam].email, aluno.email);
         *tam += 1;
         return TRUE;
 	}else{
-        // existe na lista
         if(lista[pos].numMatricula != aluno.numMatricula){
             TAluno troca;
-            for(int i = pos; i < *tam; i++){
+            int i;
+            for(i = pos; i < *tam; i++){
                 troca.numMatricula = lista[i].numMatricula;
                 strcpy(troca.nome, lista[i].nome);
                 strcpy(troca.email, lista[i].email);
@@ -128,8 +131,8 @@ int incAluno_Ord(TAluno aluno, TAluno lista[], int *tam, int cap){
         }else
             return FALSE;
     }   
-
 }
+
 int remAluno_Ord(int chave, TAluno lista[], int *tam){
     /*
         Utilizar a implementação proposta no Exemplo_10
@@ -141,9 +144,10 @@ int remAluno_Ord(int chave, TAluno lista[], int *tam){
     */
     if(*tam == 0)
         return FALSE; //lista vazia
-    int pos = buscaAluno(lista, *tam, chave);
+    int pos = buscaAluno_Ord(lista, *tam, chave);
     if (pos < *tam && lista[pos].numMatricula == chave){
-        for(int i = pos; i < *tam - 1 ; i++){
+    	int i;
+        for(i = pos; i < *tam - 1 ; i++){
             lista[i].numMatricula = lista[i+1].numMatricula;
             strcpy(lista[i].nome, lista[i+1].nome);
             strcpy(lista[i].email, lista[i+1].email);
@@ -181,118 +185,132 @@ TListAlunos* iniListAlunos(int cap, int eOrd){
     list->cap = cap;
     list->eOrd = eOrd;
     list->lista = malloc (cap * sizeof (TAluno));
+    
+    if (eOrd == TRUE){ //Ordenado - chaves sequenciais
+    	int i;
+		for (i=0;i<cap;i++){
+    		list->lista[i].numMatricula = 200010000 + i;
+    	}
+	}
+    
     return list;
 }
 
-int buscaChaveNaLista(int chave, TListAlunos *lista){
-
-    /*
-        Procurar uma chave na lista e retornar o índice
-        no array em que a chave se encontra ou a posição em
-        que um elemento com esta chave deveria ser incluído
-        na lista. Lembre que as listas não possuem elementos
-        com chave repetida.  
-    */
-   return buscaAluno_Ord(lista->lista, lista->tam, chave);
-}
-
-int incAlunoNaLista(TAluno aluno, TListAlunos *lista){
-    /*
-        Incluir um aluno na lista. A função retorna 
-        verdadeiro se o item for incluído e falso 
-        caso contrario. Um novo item não podera ser
-        incluído na lista se já tiver um outro item
-        nela com a mesma chave ou se a lista estiver 
-        cheia. 
-    */
-   return incAluno_Ord(aluno, lista->lista, lista->tam, lista->cap);
-}
-
-int remAlunoDaLista(TAluno aluno, TListAlunos *lista){
-    /*
-        Remover um aluno na lista. A função retorna 
-        verdadeiro se o item for removido e falso 
-        caso contrario. Um novo item não podera ser
-        removido da lista se não tiver um item
-        nela com a chave do aluno que se deseja remover 
-        ou se a lista estiver vazia. 
-    */
-   return remAluno_Ord(aluno.numMatricula, lista->lista, lista->tam);
-}
-
-TListAlunos* uniListas(TListAlunos *listaA, TListAlunos *listaB){
+TListAlunos* uniListas(TListAlunos *ListaA, TListAlunos *ListaB){
     /*
         Retorna uma nova lista formada pela união das duas
-        listas (listaA e listaB). A nova lista deverá ser
+        listas (ListaA e ListaB). A nova lista deverá ser
         do mesmo tipo das listas de entrada (ordenada ou
         não ordenada) caso as duas listas sejam do mesmo 
         tipo. Escolha como definir o tipo da lista de saída
         caso as listas de entrada seja de tipos diferentes. 
         Como discutido em sala de aula, a capacidade da 
         lista de saída se calcula como a soma do tamanho da
-        listaA e o tamanho da lista B. 
+        ListaA e o tamanho da lista 2. 
     */
-    //criar uma nova lista com tamanho e cap = tamanho Lista A + tamanho Lista B
-    // juntar elementos Lista A + elementos Lista B
-    int tam = listaA->tam + listaB->tam;
+    //criar uma nova lista com tamanho e cap = tamanho Lista 1 + tamanho Lista 2
+    // juntar elementos Lista 1 + elementos Lista 2
+    int cap = ListaA->tam + ListaB->tam;
     int eOrd = FALSE;
-    if (listaA->eOrd == listaB->eOrd) {
-        eOrd = listaA->eOrd;
+    if (ListaA->eOrd == ListaB->eOrd) {
+        eOrd = ListaA->eOrd;
     }
-    TListAlunos* resultado = iniListAlunos(tam, eOrd);
+    TListAlunos *resultado = iniListAlunos(cap, eOrd);
     int i;
-    for (i = 0; i < listaA->tam; i++) {
-        resultado->lista[i] = listaA->lista[i];
+    for (i = 0; i < ListaA->tam; i++) {
+        resultado->lista[i] = ListaA->lista[i];
     }
-    for (i = 0; i < listaB->tam; i++) {
+    resultado->tam = ListaA->tam;
+    for (i = 0; i < ListaB->tam; i++) {
         if (eOrd) {
-            incAluno_Ord(listaB->lista[i], resultado->lista, resultado->tam, resultado->cap);
+            incAluno_Ord(ListaB->lista[i], resultado->lista, &resultado->tam, resultado->cap);
         } else {
-            incAluno_NOrd(listaB->lista[i], resultado->lista, resultado->tam, resultado->cap);
+            incAluno_NOrd(ListaB->lista[i], resultado->lista, &resultado->tam, resultado->cap);
         }
     }
+    return resultado;
 }
 
-TListAlunos* difListas(TListAlunos *listaA, TListAlunos *listaB){
+TListAlunos* difListas(TListAlunos *ListaA, TListAlunos *ListaB){
     /*
         Retorna uma nova lista formada pela diferença da 
-        listaA com a listaB, que representa os elementos 
-        da listaA que não aparecem na listaB. A nova lista 
-        deverá ser do mesmo tipo da listaA. Como discutido 
+        ListaA com a ListaB, que representa os elementos 
+        da ListaA que não aparecem na ListaB. A nova lista 
+        deverá ser do mesmo tipo da ListaA. Como discutido 
         em sala de aula, a capacidade da lista de saída se 
-        calcula como o tamanho da listaA 
+        calcula como o tamanho da ListaA 
     */
    // A[1,2,4,6,8] - B[1,4,5,7,8]
    //Resultado[2,6]
    
-
-}
-
-void intListas(TListAlunos *listaA, TListAlunos *listaB, TListAlunos *listaC){
-    for(int i = 0; i < listaA->tam; i++){
-        if(buscaChaveNaLista(listaA->lista[i].numMatricula, listaB)){
-            incAlunoNaLista(listaA->lista[i], listaC);
+    int cap = ListaA->tam;
+    int eOrd =ListaA->eOrd;
+    TListAlunos *resultado = iniListAlunos(cap, eOrd);
+    int i, pos;
+    for (i = 0; i < ListaA->tam; i++) {
+        if (eOrd) {
+            pos = buscaAluno_Ord(ListaB->lista, ListaB->tam, ListaA->lista[i].numMatricula);
+			if (pos == ListaB->tam || ListaA->lista[i].numMatricula != ListaB->lista[pos].numMatricula){
+				incAluno_Ord(ListaA->lista[i], resultado->lista, &resultado->tam, resultado->cap);
+			}
+        } else {
+        	pos = buscaAluno_NOrd(ListaB->lista, ListaB->tam, ListaA->lista[i].numMatricula);
+			if (pos == ListaB->tam){
+				incAluno_NOrd(ListaA->lista[i], resultado->lista, &resultado->tam, resultado->cap);
+			}
         }
     }
+    return resultado;
+}
+
+TListAlunos* intListas(TListAlunos *ListaA, TListAlunos *ListaB){
     /*
         Retorna uma nova lista formada pela intersecção da 
-        listaA com a listaB, que representa os elementos 
-        da listaA que também estão na listaB. A nova lista 
+        ListaA com a ListaB, que representa os elementos 
+        da ListaA que também estão na ListaB. A nova lista 
         deverá ser do mesmo tipo das listas de entrada 
         (ordenada ou não ordenada) caso as duas listas sejam 
         do mesmo tipo. Escolha como definir o tipo da lista 
         de saída caso as listas de entrada seja de tipos 
         diferentes. Como discutido em sala de aula, a 
         capacidade da lista de saída se calcula como o 
-        menor tamanho entre as listaA e listaB.
+        menor tamanho entre as ListaA e ListaB.
     */
    // A[1,2,4,6,8] - B[1,4,5,7,8]
    //Resultado[1,4,8]
+   	
+   	int cap;
+   	if(ListaA->tam < ListaB->tam){
+   		cap = ListaA->tam;}
+   	else{
+   		cap = ListaB->tam;}
+	
+    int eOrd = FALSE;
+    if (ListaA->eOrd == ListaB->eOrd) {
+        eOrd = ListaA->eOrd;}
+    
+    TListAlunos *resultado = iniListAlunos(cap, eOrd);
+    int i;
+    int pos;
+    for (i = 0; i < ListaA->tam; i++) {
+        if (eOrd) {
+            pos = buscaAluno_Ord(ListaB->lista, ListaB->tam, ListaA->lista[i].numMatricula);
+			if (pos != ListaB->tam && ListaA->lista[i].numMatricula == ListaB->lista[pos].numMatricula){
+				incAluno_Ord(ListaA->lista[i], resultado->lista, &resultado->tam, resultado->cap);
+			}
+        } else {
+        	pos = buscaAluno_NOrd(ListaB->lista, ListaB->tam, ListaA->lista[i].numMatricula);
+			if (pos != ListaB->tam){
+				incAluno_NOrd(ListaA->lista[i], resultado->lista, &resultado->tam, resultado->cap);
+			}
+        }
+    }
+    return resultado;
 }
 
-void ordenaLista(TListAlunos *listaA){
+void ordenaLista(TListAlunos *ListaA){
     /*
-        Casso a listaA seja uma lista não ordenada, muda
+        Caso a ListaA seja uma lista não ordenada, muda
         a campo eOrd para verdadeiro e utiliza um 
         algoritmo apropriado para ordenar a lista em
         ordem crescente do campo chave. 
@@ -300,7 +318,20 @@ void ordenaLista(TListAlunos *listaA){
         aula os melhores algoritmos de ordenação. 
 
     */
-   
+   if (ListaA->eOrd == FALSE){
+		int i, j;
+		TAluno aux;
+		for(i=0; i<ListaA->tam; i++){
+			for(j=i; j<ListaA->tam; j++){
+				if(ListaA->lista[j].numMatricula > ListaA->lista[i].numMatricula){
+					aux = ListaA->lista[i];
+					ListaA->lista[i] = ListaA->lista[j];
+					ListaA->lista[j] = aux;
+				}
+			}
+		}
+		ListaA->eOrd = TRUE;
+   }
 }
 
 void printLista(TAluno lista[], int tam){
@@ -308,15 +339,17 @@ void printLista(TAluno lista[], int tam){
         Utilizar a implementação ja disponível nos
         exemplos anteriores.
     */
-    printf("[ \n ");
-    for (int i = 0; i < tam; i++)
-    {
-        printf("%d, ", lista[i].numMatricula);
-        printf("%s, ", lista[i].nome);
-        printf("%s;\n ", lista[i].email);
-    }
-    printf(" ]\n");
+    int i;
+	printf("[ \n ");
+	for (i = 0; i < tam; i++)
+	{
+		printf("%d, ", lista[i].numMatricula);
+		printf("%s, ", lista[i].nome);
+		printf("%s;\n ", lista[i].email);
+	}
+	printf(" ]\n");
 }
+
 TListAlunos* geraListaDeAlunos(int tam, int cap, int eOrd){
     /*
         Retorna uma lista de alunos com capacidade cap de 
@@ -331,17 +364,33 @@ TListAlunos* geraListaDeAlunos(int tam, int cap, int eOrd){
         * Os campos nome e email dos itens podem ser
         preenchidos com um valor padrão qualquer.
     */
-   TListAlunos *lAlunos = iniListAlunos(cap, eOrd);
-    for (int i = 0; i < tam;)
-    {
-        TAluno aluno;
-        // matricula = ano + semestre + sequencia aleatoria
-        aluno.numMatricula = ((2000 + random()%22)* 100000) + ((1 + random()%2)* 10000) + random()%900; 
-        strcpy(aluno.nome, "Nome Sobrenome UltimoNome");
-        strcpy(aluno.email,"NSUn@gmail.com");
-
-        if (incAlunoNaLista(aluno, lAlunos))
-            i++;
-    }
-    return lAlunos;
+    
+    TListAlunos *list = malloc (sizeof (TListAlunos));
+    list->tam = tam;
+    list->cap = cap;
+    list->eOrd = eOrd;
+    list->lista = malloc (cap * sizeof (TAluno));
+    
+    int i;
+    if (eOrd == TRUE){ //Ordenado - Chaves sequenciais
+    	int ano = 2000, semestre = 1;
+    	for (i=0;i<tam;i++){
+    		list->lista[i].numMatricula = ano*100000 + semestre*10000 + i;
+    		if (i >= 9999){
+    			semestre += 1;
+    			if (semestre > 2){
+    				ano += 1;
+    				semestre = 1;
+				} 
+			}
+		}	
+	}
+	else { //N�o ordenada - Chaves aleat�rias
+		srand(time(NULL));
+		for (i=0;i<tam;i++){
+    		list->lista[i].numMatricula = (2000 + rand() % 23)*100000 + (rand() % 2 + 1)*10000 + (rand() % 1000);
+		}
+	}
+    
+    return list;
 }
